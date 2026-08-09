@@ -1,0 +1,45 @@
+# ── Environment / secrets ────────────────────────────────────────────────
+.env
+.env.local
+*.env
+
+# ── Python ───────────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.eggs/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+venv/
+*.log
+
+# ── Node / frontend ──────────────────────────────────────────────────────
+node_modules/
+dist/
+frontend/dist/
+.vite/
+*.tsbuildinfo
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# ── App data / runtime artifacts ─────────────────────────────────────────
+data/
+uploads/
+query_logs/
+eval_logs/
+*.db
+*.sqlite3
+
+# ── Docker ───────────────────────────────────────────────────────────────
+docker-compose.override.yml
+
+# ── OS / editor cruft ────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp

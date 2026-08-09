@@ -1,0 +1,22 @@
+# CPU-only override — use when no NVIDIA GPU is available.
+# Usage: docker compose -f docker-compose.yml -f docker-compose.cpu.yml up
+#
+# Performance note: generation with qwen3:14b on CPU is very slow (~1 tok/s).
+# Use qwen3:8b for more tolerable speeds: OLLAMA_GENERATION_MODEL=qwen3:8b
+
+version: "3.9"
+
+services:
+  ollama:
+    deploy:
+      resources:
+        reservations:
+          devices: []   # no GPU reservation
+
+  backend:
+    deploy:
+      resources:
+        reservations:
+          devices: []
+    environment:
+      - RERANKER_DEVICE=cpu

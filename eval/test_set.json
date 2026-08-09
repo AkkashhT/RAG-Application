@@ -1,0 +1,93 @@
+[
+  {
+    "id": "doc_001",
+    "question": "What is the recommended chunk size for document ingestion?",
+    "expected_source_type": "document",
+    "expected_answer_gist": "800 tokens with 100 token overlap",
+    "notes": "Tests basic document retrieval from README/config docs"
+  },
+  {
+    "id": "doc_002",
+    "question": "What happens when a PDF page has no extractable text?",
+    "expected_source_type": "document",
+    "expected_answer_gist": "OCR fallback via Tesseract is triggered; pages are flagged as OCR-extracted",
+    "notes": "Tests OCR fallback documentation retrieval"
+  },
+  {
+    "id": "doc_003",
+    "question": "How does the confidence gate work?",
+    "expected_source_type": "document",
+    "expected_answer_gist": "If reranker scores are all below threshold AND SQL finds nothing, skip LLM and return a fixed not-found response",
+    "notes": "Tests retrieval of core pipeline logic documentation"
+  },
+  {
+    "id": "doc_004",
+    "question": "What is the difference between dense and sparse vectors in the retrieval pipeline?",
+    "expected_source_type": "document",
+    "expected_answer_gist": "Dense from nomic-embed-text for semantic similarity; sparse BM25 for exact keyword matching; both fused via RRF",
+    "notes": "Tests hybrid search explanation retrieval"
+  },
+  {
+    "id": "doc_005",
+    "question": "Which reranker model is used and why?",
+    "expected_source_type": "document",
+    "expected_answer_gist": "BAAI/bge-reranker-v2-m3 cross-encoder; fixes similarity ≠ relevance failure mode",
+    "notes": "Tests reranker documentation retrieval"
+  },
+  {
+    "id": "doc_006",
+    "question": "What safety layers prevent destructive SQL queries?",
+    "expected_source_type": "document",
+    "expected_answer_gist": "Three layers: DB read-only role (primary), statement-type rejection, EXPLAIN validation",
+    "notes": "Tests SQL safety documentation"
+  },
+  {
+    "id": "doc_007",
+    "question": "How are multi-page tables handled during chunking?",
+    "expected_source_type": "document",
+    "expected_answer_gist": "Docling detects table continuation across page breaks; merged into single chunk with page range metadata",
+    "notes": "Tests multi-page table documentation retrieval"
+  },
+  {
+    "id": "doc_008",
+    "question": "What GPU is the application designed for and how is it configured?",
+    "expected_source_type": "document",
+    "expected_answer_gist": "NVIDIA GPU with CUDA; configured via NVIDIA Container Toolkit and docker-compose deploy.resources.reservations",
+    "notes": "Tests GPU setup documentation retrieval"
+  },
+  {
+    "id": "irrelevant_001",
+    "question": "What is the boiling point of water on Mars?",
+    "expected_source_type": "none",
+    "expected_answer_gist": "not_found",
+    "notes": "Should trigger confidence gate — not in any document or DB. Verifies the system returns not-found rather than hallucinating."
+  },
+  {
+    "id": "irrelevant_002",
+    "question": "Who won the 2022 FIFA World Cup?",
+    "expected_source_type": "none",
+    "expected_answer_gist": "not_found",
+    "notes": "Should trigger confidence gate. Tests that the LLM does NOT use training data to answer."
+  },
+  {
+    "id": "sql_001",
+    "question": "How many documents are currently indexed?",
+    "expected_source_type": "sql",
+    "expected_answer_gist": "A number (count from documents table)",
+    "notes": "SQL path test — requires connected SQLite app DB. Will skip if no DB connected."
+  },
+  {
+    "id": "sql_002",
+    "question": "What are the most recently uploaded documents?",
+    "expected_source_type": "sql",
+    "expected_answer_gist": "List of document names ordered by upload timestamp",
+    "notes": "SQL path test with ORDER BY"
+  },
+  {
+    "id": "both_001",
+    "question": "Summarize the ingestion pipeline and show how many documents have been processed",
+    "expected_source_type": "both",
+    "expected_answer_gist": "Pipeline description from docs + count from DB",
+    "notes": "Tests 'both' router path"
+  }
+]

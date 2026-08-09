@@ -1,0 +1,102 @@
+version: "3.9"
+
+services:
+
+  ollama:
+    image: ollama/ollama:latest
+    container_name: localrag_ollama
+    restart: unless-stopped
+    volumes:
+      - ollama_data:/root/.ollama
+    ports:
+      - "11434:11434"
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    environment:
+      - OLLAMA_KEEP_ALIVE=24h
+      - OLLAMA_MAX_LOADED_MODELS=2
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:11434/api/tags"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+
+  qdrant:
+    image: qdrant/qdrant:v1.12.4
+    container_name: localrag_qdrant
+    restart: unless-stopped
+    volumes:
+      - qdrant_data:/qdrant/storage
+    ports:
+      - "6333:6333"
+      - "6334:6334"
+    environment:
+      - QDRANT__SERVICE__HTTP_PORT=6333
+      - QDRANT__SERVICE__GRPC_PORT=6334
+      - QDRANT__LOG_LEVEL=WARN
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: localrag_backend
+    restart: unless-stopped
+    depends_on:
+      - qdrant
+      - ollama
+    volumes:
+      - app_data:/app/data
+    ports:
+      - "8000:8000"
+    environment:
+      - OLLAMA_BASE_URL=http://ollama:11434
+      - OLLAMA_GENERATION_MODEL=qwen3:8b
+      - OLLAMA_EMBED_MODEL=nomic-embed-text
+      - QDRANT_URL=http://qdrant:6333
+      - QDRANT_COLLECTION=documents
+      - RERANKER_DEVICE=cuda
+      - LLM_TEMPERATURE=0.1
+      - CONFIDENCE_THRESHOLD=0.05
+      - UPLOAD_DIR=/app/data/uploads
+      - QUERY_LOG_DIR=/app/data/query_logs
+      - EVAL_LOG_DIR=/app/data/eval_logs
+      - CHUNK_SIZE_TOKENS=200
+      - CHUNK_OVERLAP_TOKENS=20
+      - APP_DB_URL=sqlite+aiosqlite:////app/data/app_metadata.db
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/health"]
+      interval: 20s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: localrag_frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "3000:3000"
+    environment:
+      - VITE_API_BASE_URL=http://localhost:8000
+
+volumes:
+  ollama_data:
+  qdrant_data:
+  app_data:
