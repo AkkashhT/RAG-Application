@@ -282,3 +282,6 @@ Every place where data *could* accidentally leave the machine is documented in t
 ## License
 Free to use.
 MIT
+
+
+Very nice project.
